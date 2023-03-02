@@ -12,7 +12,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 
 from urllib.request import urlopen as uReq
-import pymongo
+
 
 application = Flask(__name__) # initializing a flask app
 app=application
@@ -121,5 +121,4 @@ def index():
     
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
-	#app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000)
