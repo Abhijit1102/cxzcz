@@ -28,7 +28,7 @@ def index():
         try:
             searchString = request.form['content'].replace(" ","")
              
-            reviews = []   
+             
             options = Options()
             driver = webdriver.Firefox(options=options)
 
@@ -106,7 +106,7 @@ def index():
             mydict = {"urls": urls, "thumbnails_links": thumbnails_links, 
                       "titles": titles, "views": views,
                     "time": times}
-            
+            reviews = []
             reviews.append(mydict)
 
             return render_template('results.html', reviews=reviews)
