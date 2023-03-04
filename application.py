@@ -37,7 +37,8 @@ def index():
             time.sleep(5)
             allchannellist = driver.find_elements(By.CSS_SELECTOR, "a#video-title-link")
                 
-            urls = list(dict.fromkeys(map(lambda a : a.get_attribute("href"), allchannellist)))
+            urls = list(set(map(lambda a: a.get_attribute("href"), allchannellist)))
+
             driver.quit()
             urls = urls[:5]
 
@@ -87,9 +88,9 @@ def index():
             driver.get(f"https://www.youtube.com/@{searchString}/videos")
             time.sleep(5)
             allchannellist = driver.find_elements(By.CSS_SELECTOR, "span.style-scope.ytd-video-meta-block")
-            views_time = list(dict.fromkeys(map(lambda a : a.get_attribute("innerHTML"), allchannellist)))
+            views_time = list(set(map(lambda a : a.get_attribute("innerHTML"), allchannellist)))
             driver.quit()
-            views_time = views_time[0:11]
+            views_time = views_time[0:14]
             views =[i  for i in views_time if i.endswith("views")]
             times = [i  for i in views_time if not i.endswith("views")]
 
