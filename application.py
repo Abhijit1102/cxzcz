@@ -11,6 +11,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
+
+
+#options = Options()
+#options.binary_location = '/path/to/firefox'
+
+#options.set_capability("loggingPrefs", {"driver": "OFF", "server": "OFF", "browser": "OFF"})
+#service = Service(executable_path='/path/to/geckodriver.exe', log_path=os.devnull)
+#driver = webdriver.Firefox(options=options, service=service)
+
 from urllib.request import urlopen as uReq
 
 
@@ -40,36 +53,21 @@ def index():
             urls = list(set(map(lambda a: a.get_attribute("href"), allchannellist)))
 
             driver.quit()
-            urls = urls[:5]
-
             
             thumbnails_links = []
 
             for i in urls:
-                url = i
+                driver.get(i)
+
+                # Extract video ID from URL
                 exp = "^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*"
-                s = re.findall(exp,url)[0][-1]
-                thumbnail = f"https://i.ytimg.com/vi/{s}/maxresdefault.jpg"
+                s = re.findall(exp,i)[0][-1]
 
-                #image scraping
-                def imagedown(url, folder):
-                    try:
-                        os.mkdir(os.path.join(os.getcwd(), folder))
-                    except:
-                        pass
-                    os.chdir(os.path.join(os.getcwd(), folder))
-
-                    name = url
-                    link = url
-                    with open(name.replace(' ', '-').replace('/', '') + '.jpg', 'wb') as f:
-                        im = requests.get(link)
-                        f.write(im.content)
-                        #print( name)
-                        thumbnails_links.append(name)
-
-                imagedown(thumbnail, 'image')
-
-                
+                # Construct image URL
+                thumbnail_url = f"https://i.ytimg.com/vi/{s}/maxresdefault.jpg"
+                thumbnails_links.append(thumbnail_url)
+                driver.quit()
+                            
             driver = webdriver.Firefox( options=options)
 
             driver.implicitly_wait(5)
@@ -111,4 +109,5 @@ def index():
     
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)
+    #app.run(host='0.0.0.0', port=8000)
+    app.run(debug=True)
