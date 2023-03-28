@@ -1,97 +1,117 @@
 from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS,cross_origin
 
+from requests_html import HTMLSession
+from bs4 import BeautifulSoup as bs
 import requests
 import re
-import os
-from urllib.request import urlopen as uReq
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
-import time
+application = Flask(__name__) # initializing a flask app
+app=application
 
-
-
-application = Flask(__name__)  # initializing a flask app
-app = application
-
-@app.route('/', methods=['GET'])  # route to display the home page
+@app.route('/',methods=['GET'])  # route to display the home page
 @cross_origin()
 def homePage():
     return render_template("index.html")
-
-@app.route('/review', methods=['POST']) # route to show the review comments in a web UI
+@app.route('/review',methods=['POST','GET']) # route to show the review comments in a web UI
 @cross_origin()
 def index():
-    try:
-        searchString = request.form['content'].replace(" ", "")
-        
-        options = Options()
-        driver = webdriver.Firefox(options=options)
-        driver.implicitly_wait(5)
+    if request.method == 'POST':
+        try:
+            searchString = request.form['content'].replace(" ","")
+             
+            url = "https://www.youtube.com/@PW-Foundation/videos"
 
+            html = requests.get(url).text
 
-        driver.get("https://www.youtube.com/@PW-Foundation/videos")
-        time.sleep(5)
-        allchannellist = driver.find_elements(By.CSS_SELECTOR, "a#video-title-link")
+            video_ids = re.findall(r"watch\?v=(\S{11})", html)
+
+            video_links = ["https://www.youtube.com/watch?v=" + id for id in video_ids]
+
+            urls = video_links[:5]
+
+            urls
+
             
-        urls = list(dict.fromkeys(map(lambda a : a.get_attribute("href"), allchannellist)))
-        driver.quit()
-        urls = urls[:5]
-        driver.quit()
+            thumbnails_links = []
 
-        thumbnails_links = []
-        for url in urls:
-            # Extract video ID from URL
-            exp = "^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*"
-            s = re.findall(exp, url)[0][-1]
+            for url in urls:
 
-            # Construct image URL
-            thumbnail_url = f"https://i.ytimg.com/vi/{s}/maxresdefault.jpg"
-            thumbnails_links.append(thumbnail_url)
+                # Extract video ID from URL
+                exp = "^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*"
+                s = re.findall(exp, url)[0][-1]
 
-        options = Options()
-        driver = webdriver.Firefox(options=options)
+                # Construct image URL
+                thumbnail_url = f"https://i.ytimg.com/vi/{s}/maxresdefault.jpg"
 
-        driver.implicitly_wait(5)
+                thumbnails_links.append(thumbnail_url)  
+
+            titles = []
+            views = []
+            times = []   
+            
+            def give_me_everything():
+
+                data = soup.find_all("meta") 
+
+                for i in range(len(data)):  
+                    print(data[i])
+
+            for url  in urls:
+            
+                session = HTMLSession() 
+                response = session.get(url)  
+
+                if response.status_code != 200: 
+                    print("Error! Response = " + str(response.status_code))
+                else:
+                    soup = bs(response.content, "html.parser")  
+                    title =  soup.find("meta", property="og:title")["content"]
+                    titles.append(title)
 
 
-        driver.get("https://www.youtube.com/@PW-Foundation/videos")
-        time.sleep(5)
+            for url in urls:
+            
+                session = HTMLSession() 
+                response = session.get(url)  
 
-        driver.implicitly_wait(5)
+                if response.status_code != 200: 
+                    print("Error! Response = " + str(response.status_code))
+                else:
+                    soup = bs(response.content, "html.parser")  
+                    view =  soup.find("meta", itemprop="interactionCount")["content"]
+                    views.append(view)
 
 
-        driver.get("https://www.youtube.com/@PW-Foundation/videos")
-        time.sleep(5)
-        all_titles = driver.find_elements(By.CSS_SELECTOR, "a#video-title-link")
-        titles = [title.get_attribute('title') for title in all_titles]
-        driver.quit()
-        titles= titles[:5]
+            for url in urls:
+   
+                session = HTMLSession() 
+                response = session.get(url)  
+
+                if response.status_code != 200: 
+                    print("Error! Response = " + str(response.status_code))
+                else:
+                    soup = bs(response.content, "html.parser")  
+                    time = soup.find("meta", itemprop="uploadDate")["content"]
+                    times.append(time)
+                
+            mydict = {"urls": urls, "thumbnails_links": thumbnails_links, 
+                      "titles": titles, "views": views,
+                    "time": times}
+            reviews= []
+            reviews.append(mydict)
+
+            return render_template('results.html', reviews=reviews)
         
-        driver = webdriver.Firefox(options=options)
+        except Exception as e:
+            print('The Exception message is: ', e)
+            return f'something is wrong: {e}'
+    
 
-        driver.implicitly_wait(5)
-        driver.get("https://www.youtube.com/@PW-Foundation/videos")
-        time.sleep(5)
-        allchannellist = driver.find_elements(By.CSS_SELECTOR, "span.style-scope.ytd-video-meta-block")
-        views_time = list(dict.fromkeys(map(lambda a : a.get_attribute("innerHTML"), allchannellist)))
-        driver.quit()
-        views_time = views_time[0:11]
-        views =[i  for i in views_time if i.endswith("views")]
-        times = [i  for i in views_time if not i.endswith("views")]
-
-        mydict = {"urls": urls, "thumbnails_links": thumbnails_links, 
-                  "titles": titles, "views": views,
-                  "time": times}
-        
-        return render_template('results.html', mydicts=mydict)
-
-    except Exception as e:
-        print('The Exception message is: ', e)
-        return f'something is wrong: {e}'
+    else:
+        return render_template('index.html')
+    
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=8000)
+	#app.run(debug=True)

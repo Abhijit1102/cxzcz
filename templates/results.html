@@ -18,14 +18,16 @@
                </tr>
             </thead>
             <tbody>
-               {% for i in range(0,5) %}
+               {% for review in reviews: %}
+               {% for i in range(0,5): %}
                <tr>
-                  <td>{{ mydicts['urls'][i] }}</td>
-                  <td>{{ mydicts['thumbnails_links'][i] }}</td>
-                  <td>{{ mydicts['titles'][i] }}</td>
-                  <td>{{ mydicts['views'][i] }}</td>
-                  <td>{{ mydicts['time'][i] }}</td>
+                  <td>{{ review['urls'][i] }}</td>
+                  <td>{{ review['thumbnails_links'][i]}}</td>
+                  <td>{{ review['titles'][i] }}</td>
+                  <td>{{ review['views'][i] }}</td>
+                  <td>{{ review['time'][i] }}</td>
                </tr>
+               {% endfor %}
                {% endfor %}
             </tbody>
          </table>
