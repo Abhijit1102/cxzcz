@@ -1,6 +1,12 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS,cross_origin
 
+import logging
+
+# Set up logging configuration
+logging.basicConfig(filename='application.log', level=logging.ERROR,
+                    format='%(asctime)s:%(levelname)s:%(message)s')
+
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup as bs
 import requests
@@ -63,7 +69,7 @@ def index():
                 response = session.get(url)  
 
                 if response.status_code != 200: 
-                    print("Error! Response = " + str(response.status_code))
+                    titles.append("Error! Response = " + str(response.status_code))
                 else:
                     soup = bs(response.content, "html.parser")  
                     title =  soup.find("meta", property="og:title")["content"]
@@ -76,7 +82,7 @@ def index():
                 response = session.get(url)  
 
                 if response.status_code != 200: 
-                    print("Error! Response = " + str(response.status_code))
+                    views.append("Error! Response = " + str(response.status_code))
                 else:
                     soup = bs(response.content, "html.parser")  
                     view =  soup.find("meta", itemprop="interactionCount")["content"]
@@ -89,7 +95,7 @@ def index():
                 response = session.get(url)  
 
                 if response.status_code != 200: 
-                    print("Error! Response = " + str(response.status_code))
+                    times.append("Error! Response = " + str(response.status_code))
                 else:
                     soup = bs(response.content, "html.parser")  
                     time = soup.find("meta", itemprop="uploadDate")["content"]
@@ -104,7 +110,7 @@ def index():
             return render_template('results.html', reviews=reviews)
         
         except Exception as e:
-            print('The Exception message is: ', e)
+            logging.error("An error occurred: %s", str(e))
             return f'something is wrong: {e}'
     
 
@@ -113,5 +119,5 @@ def index():
     
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8000,dedbug=True)
+    app.run(host='127.0.0.1', port=8000, debug=True)
 	#app.run(debug=True)
