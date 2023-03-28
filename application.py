@@ -26,7 +26,7 @@ def index():
         try:
             searchString = request.form['content'].replace(" ","")
              
-            url = "https://www.youtube.com/@PW-Foundation/videos"
+            url = f"https://www.youtube.com/@{searchString}/videos"
 
             html = requests.get(url).text
 
